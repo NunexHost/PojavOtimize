@@ -26,7 +26,7 @@ public class WorldRender extends JavaPlugin implements Listener {
         Bukkit.getServer().getScheduler().runTaskTimer(this, () -> {
             for (World world : Bukkit.getWorlds()) {
                 for (Chunk chunk : world.getLoadedChunks()) {
-                    otimizarChunk(chunk);
+                    WorldRender(chunk);
                 }
             }
         }, 20L, 20L);
@@ -34,7 +34,7 @@ public class WorldRender extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onChunkLoad(ChunkLoadEvent event) {
-        otimizarChunk(event.getChunk());
+        WorldRender(event.getChunk());
     }
 
     private void WorldRender(Chunk chunk) {
@@ -57,19 +57,4 @@ public class WorldRender extends JavaPlugin implements Listener {
                 }
             }
         }
-
-        // Gerar árvores aleatoriamente
-        for (int i = 0; i < 10; i++) {
-            int x = random.nextInt(16);
-            int z = random.nextInt(16);
-            int y = chunk.getHighestBlockYAt(x, z);
-
-            if (y > 0 && chunk.getBlock(x, y - 1, z).getType() == Material.DIRT) {
-                Bukkit.getServer().getScheduler().runTaskLater(this, () -> {
-                    World world = chunk.getWorld();
-                    world.generateTree(chunk.getBlock(x, y, z).getLocation(), TreeType.BIG_TREE);
-                }, 1L);
-            }
-        }
     }
-}
