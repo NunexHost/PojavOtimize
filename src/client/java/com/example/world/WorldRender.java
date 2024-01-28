@@ -1,71 +1,75 @@
 package com.example.world;
     
-import java.util.Arrays;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.List;
+import java.util.Random;
 
-//import net.minecraft.client.Minecraft;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.chunk.Chunk;
-import net.minecraft.block.Blocks;
+import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.plugin.java.JavaPlugin;
 
-public class WorldRender {
+public class WorldRender extends JavaPlugin implements Listener {
 
-//    private static final Minecraft mc = Minecraft.getInstance();
-    private static final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    private Random random = new Random();
 
-    public static void main(String[] args) {
-        // Define a área a ser otimizada
-        int radius = 100;
+    @Override
+    public void onEnable() {
+        Bukkit.getPluginManager().registerEvents(this, this);
 
-        // Obtém a posição do jogador
-        BlockPos playerPos = mc.player.getPosition();
-
-        // Cria um callable para cada chunk na área
-        Callable<Void>[] tasks = new Callable[radius * radius * 2];
-        for (int i = -radius; i <= radius; i++) {
-            for (int j = -radius; j <= radius; j++) {
-                int index = (i + radius) * radius * 2 + (j + radius);
-                tasks[index] = () -> {
-                    optimizeChunk(playerPos.getX() + i, playerPos.getZ() + j);
-                    return null;
-                };
+        // Otimização de chunks ao carregar
+        Bukkit.getServer().getScheduler().runTaskTimer(this, () -> {
+            for (World world : Bukkit.getWorlds()) {
+                for (Chunk chunk : world.getLoadedChunks()) {
+                    otimizarChunk(chunk);
+                }
             }
-        }
-
-        // Executa as tarefas em paralelo
-        try {
-            Future<?>[] futures = executorService.invokeAll(Arrays.asList(tasks));
-            for (Future<?> future : futures) {
-                future.get();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        // Informa o jogador que a otimização foi concluída
-        mc.player.sendMessage("Otimização do mundo concluída!");
+        }, 20L, 20L);
     }
 
-    private static void optimizeChunk(int x, int z) {
-        // Obtém o chunk
-        Chunk chunk = mc.world.getChunk(x, z);
+    @EventHandler
+    public void onChunkLoad(ChunkLoadEvent event) {
+        otimizarChunk(event.getChunk());
+    }
 
-        // Apaga blocos
-        for (int i = 0; i < 16; i++) {
-            for (int j = 0; j < 16; j++) {
-                for (int k = 0; k < 256; k++) {
-                    chunk.setBlockState(new BlockPos(i, j, k), Blocks.AIR.getDefaultState());
+    private void WorldRender(Chunk chunk) {
+        // Remover entidades desnecessárias
+        List<Entity> entities = chunk.getEntities();
+        for (Entity entity : entities) {
+            if (entity.isDead() || entity.getType().isStationary()) {
+                entity.remove();
+            }
+        }
+
+        // Substituir blocos de ar por pedra
+        for (int x = 0; x < 16; x++) {
+            for (int y = 0; y < 256; y++) {
+                for (int z = 0; z < 16; z++) {
+                    Block block = chunk.getBlock(x, y, z);
+                    if (block.getType() == Material.AIR) {
+                        block.setType(Material.STONE);
+                    }
                 }
             }
         }
 
-        // Atualiza a luz
-        chunk.relight(null, false);
+        // Gerar árvores aleatoriamente
+        for (int i = 0; i < 10; i++) {
+            int x = random.nextInt(16);
+            int z = random.nextInt(16);
+            int y = chunk.getHighestBlockYAt(x, z);
 
-        // Salva o chunk
-        chunk.markDirty();
+            if (y > 0 && chunk.getBlock(x, y - 1, z).getType() == Material.DIRT) {
+                Bukkit.getServer().getScheduler().runTaskLater(this, () -> {
+                    World world = chunk.getWorld();
+                    world.generateTree(chunk.getBlock(x, y, z).getLocation(), TreeType.BIG_TREE);
+                }, 1L);
+            }
+        }
     }
 }
