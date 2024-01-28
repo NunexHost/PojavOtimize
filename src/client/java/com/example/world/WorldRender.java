@@ -1,5 +1,6 @@
 package com.example.world;
     
+import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -8,6 +9,7 @@ import java.util.concurrent.Future;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.level.block.Blocks;
 
 public class WorldOptimizer {
 
@@ -35,7 +37,7 @@ public class WorldOptimizer {
 
         // Executa as tarefas em paralelo
         try {
-            Future<?>[] futures = executorService.invokeAll(tasks);
+            Future<?>[] futures = executorService.invokeAll(Arrays.asList(tasks));
             for (Future<?> future : futures) {
                 future.get();
             }
@@ -61,7 +63,7 @@ public class WorldOptimizer {
         }
 
         // Atualiza a luz
-        chunk.setLight(true);
+        chunk.relight(null, false);
 
         // Salva o chunk
         chunk.markDirty();
