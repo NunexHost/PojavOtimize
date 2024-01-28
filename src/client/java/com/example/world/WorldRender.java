@@ -11,7 +11,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.level.block.Blocks;
 
-public class WorldOptimizer {
+public class WorldRender {
 
     private static final Minecraft mc = Minecraft.getInstance();
     private static final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
