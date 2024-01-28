@@ -6,14 +6,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import net.minecraft.client.Minecraft;
+//import net.minecraft.client.Minecraft;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.level.block.Blocks;
+import net.minecraft.block.Blocks;
 
 public class WorldRender {
 
-    private static final Minecraft mc = Minecraft.getInstance();
+//    private static final Minecraft mc = Minecraft.getInstance();
     private static final ExecutorService executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
     public static void main(String[] args) {
